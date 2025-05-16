@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meal Info</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-yellow-50 p-6 min-h-screen">
+
+  <a href="explore.html" class="text-yellow-700 underline mb-6 inline-block">&larr; Back to search</a>
+  
+  <div id="mealContainer" class="max-w-xl bg-white p-6 rounded shadow">
+    <h1 id="mealName" class="text-3xl font-bold mb-4 text-yellow-800">Loading...</h1>
+    <img id="mealImage" src="" alt="Meal Image" class="rounded mb-4 w-full max-h-96 object-cover hidden" />
+    <h2 class="text-xl font-semibold mb-2">Ingredients:</h2>
+    <ul id="ingredientsList" class="list-disc list-inside mb-6"></ul>
+    <h2 class="text-xl font-semibold mb-2">Instructions:</h2>
+    <p id="instructions" class="whitespace-pre-line"></p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const mealId = params.get('id');
+
+    const mealName = document.getElementById('mealName');
+    const mealImage = document.getElementById('mealImage');
+    const ingredientsList = document.getElementById('ingredientsList');
+    const instructions = document.getElementById('instructions');
+
+    async function loadMeal(id) {
+      if (!id) {
+        mealName.textContent = 'No meal ID provided.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+        const data = await res.json();
+
+        if (!data.meals) {
+          mealName.textContent = 'Meal not found.';
+          return;
+        }
+
+        const meal = data.meals[0];
+
+        mealName.textContent = meal.strMeal;
+        mealImage.src = meal.strMealThumb;
+        mealImage.alt = meal.strMeal;
+        mealImage.classList.remove('hidden');
+
+        // Collect ingredients + measures
+        const ingredients = [];
+        for(let i = 1; i <= 20; i++) {
+          const ingredient = meal[`strIngredient${i}`];
+          const measure = meal[`strMeasure${i}`];
+          if (ingredient && ingredient.trim()) {
+            ingredients.push(`${measure ? measure : ''} ${ingredient}`.trim());
+          }
+        }
+
+        ingredientsList.innerHTML = ingredients.map(item => `<li>${item}</li>`).join('');
+        instructions.textContent = meal.strInstructions;
+
+      } catch (error) {
+        mealName.textContent = 'Error loading meal details.';
+        console.error(error);
+      }
+    }
+
+    loadMeal(mealId);
+  </script>
+
+</body>
+</html>

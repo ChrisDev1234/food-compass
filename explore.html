@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Explore Meals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-yellow-50 p-6 min-h-screen">
+
+  <h1 class="text-3xl font-bold mb-6 text-yellow-700">Explore Meals</h1>
+  
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Type a meal name and press Enter or start typing..." 
+    class="border p-3 rounded w-full max-w-xl mb-8"
+    autofocus
+  />
+
+  <ul id="results" class="space-y-4 max-w-xl"></ul>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const results = document.getElementById('results');
+
+    async function searchMeals(query) {
+      if (!query) {
+        results.innerHTML = '';
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (!data.meals) {
+          results.innerHTML = '<li>No meals found.</li>';
+          return;
+        }
+
+        results.innerHTML = data.meals.map(meal => `
+          <li class="bg-white p-4 rounded shadow hover:shadow-lg transition">
+            <a 
+              href="meal.html?id=${meal.idMeal}" 
+              class="text-yellow-800 font-semibold text-lg hover:underline"
+            >
+              ${meal.strMeal}
+            </a>
+          </li>
+        `).join('');
+      } catch (error) {
+        results.innerHTML = '<li>Error fetching meals. Please try again.</li>';
+        console.error(error);
+      }
+    }
+
+    searchInput.addEventListener('input', e => {
+      searchMeals(e.target.value.trim());
+    });
+
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchMeals(e.target.value.trim());
+      }
+    });
+  </script>
+
+</body>
+</html>
